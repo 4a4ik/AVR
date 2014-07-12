@@ -59,7 +59,7 @@ int main(void)
 	_delay_ms(2);
 	
 	//---return cursor to beginning
-	PORTC |= (1 << PIN_DB1 );
+	PORTC |= ( 1 << PIN_DB1 );
 	//send data
 	send();
 	wait_busy();
@@ -67,7 +67,7 @@ int main(void)
 	_delay_ms(2);
 	
 	//---write symbol
-	PORTB |= (1 << PIN_RS );
+	PORTB |= ( 1 << PIN_RS );
 	PORTD |= ( 1 << PIN_DB4 )|( 1 << PIN_DB5 );
 	//send data
 	send();
@@ -76,9 +76,9 @@ int main(void)
 	_delay_ms(2);
 	
 	//---write symbol
-	PORTB |= (1 << PIN_RS );
+	PORTB |= ( 1 << PIN_RS );
 	PORTD |= ( 1 << PIN_DB6 )|( 1 << PIN_DB7 );
-	PORTC |= (1 << PIN_DB3 );
+	PORTC |= ( 1 << PIN_DB3 );
 	//send data
 	send();
 	wait_busy();
@@ -98,7 +98,7 @@ void wait_busy()
 	{
 		PORTB &= ~( 1 << PIN_E );
 		_delay_us(1);
-		PORTB |= ( 1 << PIN_E );
+		PORTB |=  ( 1 << PIN_E );
 		
 	} while ( PIND & ( 1 << PIN_DB7 ) );
 	PORTB &= 0;
@@ -106,7 +106,7 @@ void wait_busy()
 
 void send()
 {
-	PORTB |= ( 1 << PIN_E );
+	PORTB |=  ( 1 << PIN_E );
 	//wait
 	_delay_us(1);
 	//don't send
