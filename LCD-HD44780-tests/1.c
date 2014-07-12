@@ -101,7 +101,7 @@ void wait_busy()
 		PORTB |=  ( 1 << PIN_E );
 		
 	} while ( PIND & ( 1 << PIN_DB7 ) );
-	PORTB &= 0;
+	PORTB = 0;
 }
 
 void send()
