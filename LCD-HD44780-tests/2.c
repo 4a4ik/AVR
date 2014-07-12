@@ -68,7 +68,7 @@ int main(void)
 
 void send()
 {
-	PROGRAM_PORT |= ( 1 << PIN_E );
+	PROGRAM_PORT |=  ( 1 << PIN_E );
 	//wait
 	_delay_us(1);
 	//don't send
@@ -109,7 +109,7 @@ void initialize( int bit_num, int line_num )
 	{
 		PROGRAM_PORT &= ~( 1 << PIN_E );
 		_delay_us(1);
-		PROGRAM_PORT |= ( 1 << PIN_E );
+		PROGRAM_PORT |=  ( 1 << PIN_E );
 		
 	} while ( PIND & ( 1 << PIN_DB7 ) );
 	PROGRAM_PORT = 0;
