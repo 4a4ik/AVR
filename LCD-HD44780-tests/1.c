@@ -39,6 +39,7 @@ int main(void)
 	
 	//---wait for initialization
 	wait_busy();
+	_delay_us(2);
 
 	//---8 bit 2 line mode
 	PORTD |= ( 1 << PIN_DB4 )|( 1 << PIN_DB5 );
@@ -56,7 +57,7 @@ int main(void)
 	wait_busy();
 
 	//wait
-	_delay_ms(2);
+	_delay_us(2);
 	
 	//---return cursor to beginning
 	PORTC |= ( 1 << PIN_DB1 );
