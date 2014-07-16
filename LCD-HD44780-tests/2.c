@@ -37,7 +37,7 @@ void set_mode( int display_shift, int cursor_shift );
 void enable_display( int display_on, int cursor_on, int blinking_on );
 void return_cursor();
 void clear_display();
-void go_to_2_line();
+void move_cursor( int x_pos, int line );
 
 int main(void)
 {
@@ -155,11 +155,16 @@ void clear_display()
 	_delay_us(50);
 }
 
-void go_to_2_line()
+void move_cursor( int x_pos, int line )
 {
+	
+	int small_bit = x_pos % 16;
+	int high_bit  = x_pos / 16;
+	
 	//---moves cursor to the beginning of 2 line
-	HIGH_PORT |= (1 << PIN_DB7 )|(1 << PIN_DB6 )|(0 << PIN_DB5 )|(0 << PIN_DB4 );
-	LOW_PORT  |= (0 << PIN_DB3 )|(0 << PIN_DB2 )|(0 << PIN_DB1 )|(0 << PIN_DB0 );
+	HIGH_PORT = high_bit;
+	HIGH_PORT |= (1 << PIN_DB7 )|((line - 1) << PIN_DB6 );
+	LOW_PORT  = small_bit;
 	//send data
 	send();
 	//wait
