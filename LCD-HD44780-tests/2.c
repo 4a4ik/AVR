@@ -43,10 +43,10 @@ int main(void)
 {
 	
 	initialize( 1, 1 );
-	set_mode( 0, 1 );
 	enable_display( 1, 0, 0 );
 	clear_display();
 	return_cursor();
+	set_mode( 0, 1 );
 	
 	
 	write_symbol(' ');
@@ -103,16 +103,7 @@ void initialize( int bit_num, int line_num )
 	DDRD = 0xFF;
 	
 	//---wait for initialization
-	//check busy flag
-	PROGRAM_PORT |= ( 1 << PIN_RW );
-	do
-	{
-		PROGRAM_PORT &= ~( 1 << PIN_E );
-		_delay_us(1);
-		PROGRAM_PORT |=  ( 1 << PIN_E );
-		
-	} while ( PIND & ( 1 << PIN_DB7 ) );
-	PROGRAM_PORT = 0;
+	_delay_us(50);
 
 	//---8 bit 2 line mode
 	HIGH_PORT |= ( bit_num << PIN_DB4 )|( 1 << PIN_DB5 );
