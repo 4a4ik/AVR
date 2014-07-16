@@ -39,7 +39,6 @@ int main(void)
 	
 	//---wait for initialization
 	wait_busy();
-	_delay_us(2);
 
 	//---8 bit 2 line mode
 	PORTD |= ( 1 << PIN_DB4 )|( 1 << PIN_DB5 );
@@ -47,8 +46,6 @@ int main(void)
 	//send data
 	send();
 	wait_busy();
-	//wait
-	_delay_ms(2);
 	
 	//----turn on display, enable cursor, blniking cursor
 	PORTC |= (1 << PIN_DB0 )|(1 << PIN_DB1 )|(1 << PIN_DB2 )|(1 << PIN_DB3 );
@@ -56,16 +53,11 @@ int main(void)
 	send();
 	wait_busy();
 
-	//wait
-	_delay_us(2);
-	
 	//---return cursor to beginning
 	PORTC |= ( 1 << PIN_DB1 );
 	//send data
 	send();
 	wait_busy();
-	//wait
-	_delay_ms(2);
 	
 	//---write symbol
 	PORTB |= ( 1 << PIN_RS );
@@ -73,8 +65,6 @@ int main(void)
 	//send data
 	send();
 	wait_busy();
-	//wait
-	_delay_ms(2);
 	
 	//---write symbol
 	PORTB |= ( 1 << PIN_RS );
@@ -83,8 +73,6 @@ int main(void)
 	//send data
 	send();
 	wait_busy();
-	//wait
-	_delay_ms(2);
 	
     while(1)
     {
@@ -103,6 +91,7 @@ void wait_busy()
 		
 	} while ( PIND & ( 1 << PIN_DB7 ) );
 	PORTB = 0;
+	_delay_us(7);
 }
 
 void send()
