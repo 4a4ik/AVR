@@ -38,6 +38,8 @@ void enable_display( int display_on, int cursor_on, int blinking_on );
 void return_cursor();
 void clear_display();
 void move_cursor( int x_pos, int line );
+void add_character( int where, unsigned char line1, unsigned char line2,
+unsigned char line3, unsigned char line4, unsigned char line5, unsigned char line6, unsigned char line7, unsigned char line8 );
 
 int main(void)
 {
@@ -169,5 +171,105 @@ void move_cursor( int x_pos, int line )
 	send();
 	//wait
 	_delay_us(50);
+}
+
+void add_character( int where, unsigned char line1, unsigned char line2,
+unsigned char line3, unsigned char line4, unsigned char line5, unsigned char line6, unsigned char line7, unsigned char line8 )
+{
+	// starts sending char lines
+	int small_bit = where % 16;
+	int high_bit  = where / 16;
+		
+	HIGH_PORT  = high_bit;
+	HIGH_PORT |= (1 << PIN_DB6 );
+	LOW_PORT   = small_bit;
+	
+	send();
+	
+	// 1 line
+	small_bit = line1 % 16;
+	high_bit  = line1 / 16;
+	
+	HIGH_PORT = high_bit;;
+	LOW_PORT  = small_bit;
+	PROGRAM_PORT |= (1 << PIN_RS );
+	
+	send();
+	
+	// 2 line
+	small_bit = line2 % 16;
+	high_bit  = line2 / 16;
+		
+	HIGH_PORT = high_bit;;
+	LOW_PORT  = small_bit;
+	PROGRAM_PORT |= (1 << PIN_RS );
+		
+	send();
+	
+	// 3 line
+	small_bit = line3 % 16;
+	high_bit  = line3 / 16;
+	
+	HIGH_PORT = high_bit;;
+	LOW_PORT  = small_bit;
+	PROGRAM_PORT |= (1 << PIN_RS );
+	
+	send();
+	
+	// 4 line
+	small_bit = line4 % 16;
+	high_bit  = line4 / 16;
+	
+	HIGH_PORT = high_bit;;
+	LOW_PORT  = small_bit;
+	PROGRAM_PORT |= (1 << PIN_RS );
+	
+	send();
+	
+	
+	// 5 line
+	small_bit = line5 % 16;
+	high_bit  = line5 / 16;
+		
+	HIGH_PORT = high_bit;;
+	LOW_PORT  = small_bit;
+	PROGRAM_PORT |= (1 << PIN_RS );
+		
+	send();
+	
+	// 6 line
+	small_bit = line6 % 16;
+	high_bit  = line6 / 16;
+	
+	HIGH_PORT = high_bit;;
+	LOW_PORT  = small_bit;
+	PROGRAM_PORT |= (1 << PIN_RS );
+	
+	send();
+	
+	// 7 line
+	small_bit = line7 % 16;
+	high_bit  = line7 / 16;
+	
+	HIGH_PORT = high_bit;;
+	LOW_PORT  = small_bit;
+	PROGRAM_PORT |= (1 << PIN_RS );
+	
+	send();
+	
+	// 8 line
+	small_bit = line8 % 16;
+	high_bit  = line8 / 16;
+	
+	HIGH_PORT = high_bit;;
+	LOW_PORT  = small_bit;
+	PROGRAM_PORT |= (1 << PIN_RS );
+	
+	send();
+	
+	// Back to normal regime
+	HIGH_PORT |= (1 << PIN_DB7 );
+	
+	send();
 }
 
