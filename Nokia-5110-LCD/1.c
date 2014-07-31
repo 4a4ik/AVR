@@ -85,7 +85,7 @@ void LCD_init()
 	LCD_write_byte(0x06, 0);	// temperature correction
 	LCD_write_byte(0x13, 0);	// 1:48
 	LCD_write_byte(0x20, 0);	// use bias command
-	LCD_clear();	            // clear the LCD
+	LCD_clear();	                // clear the LCD
 	LCD_write_byte(0x0c, 0);	// set LCD mode,display normally
 }
 
@@ -104,8 +104,8 @@ void LCD_clear()
 
 void LCD_set_XY(unsigned char X, unsigned char Y)
 {
-	LCD_write_byte(0x40 | Y, 0);		// column
-	LCD_write_byte(0x80 | X, 0);        // row
+	LCD_write_byte(0x40 | Y, 0);	// column
+	LCD_write_byte(0x80 | X, 0);    // row
 }
 
 void LCD_write_char(unsigned char c)
