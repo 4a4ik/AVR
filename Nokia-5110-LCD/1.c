@@ -36,8 +36,7 @@ int main(void)
 	DDRD = 0x0F;
 	
 	LCD_init();       //LCD initialization
-	LCD_clear();      //clear the LCD
-	
+
 	LCD_write_english_string(0,0," Hello World ! ");   
 	LCD_write_english_string(0,1," bananas ");    
 	LCD_write_english_string(0,2,"dancing potato");
@@ -80,13 +79,13 @@ void LCD_init()
 
 	_delay_us(1);
 
-	LCD_write_byte(0x21, 0);	// set LCD mode
-	LCD_write_byte(0xc8, 0);	// set bias voltage
-	LCD_write_byte(0x06, 0);	// temperature correction
-	LCD_write_byte(0x13, 0);	// 1:48
-	LCD_write_byte(0x20, 0);	// use bias command
+	LCD_write_byte(0x21, 1);	// set LCD mode
+	LCD_write_byte(0xc8, 1);	// set bias voltage
+	LCD_write_byte(0x06, 1);	// temperature correction
+	LCD_write_byte(0x13, 1);	// 1:48
+	LCD_write_byte(0x20, 1);	// use bias command, vertical
+	LCD_write_byte(0x0c, 1);	// set LCD mode,display normally
 	LCD_clear();	                // clear the LCD
-	LCD_write_byte(0x0c, 0);	// set LCD mode,display normally
 }
 
 void LCD_clear() 
