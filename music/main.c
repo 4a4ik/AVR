@@ -33,7 +33,7 @@ void InitMusic()
 	DDRD |= _BV(DDD4); //OC1B as output
 
 	// timer1 configuration (for PWM)
-    TCCR1A |= _BV(COM1B1);  // Clear OC1A/OC1B on compare match
+	TCCR1A |= _BV(COM1B1);  // Clear OC1A/OC1B on compare match
 
 	
 	TCCR1B |= _BV(WGM13) 	//mode 8, PWM, Phase and Frequency Correct (TOP value is ICR1)
