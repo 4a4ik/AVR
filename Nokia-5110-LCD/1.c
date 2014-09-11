@@ -54,7 +54,7 @@ void LCD_write_byte(unsigned char dat, unsigned char command)
 {
 	unsigned char i;
 	
-	if (command == 0)
+	if (command == 1)
 	LCD_DC_clr;
 	else
 	LCD_DC_set;
@@ -92,19 +92,19 @@ void LCD_clear()
 {
 	unsigned int i;
 
-	LCD_write_byte(0x0c, 0);
-	LCD_write_byte(0x80, 0);
+	LCD_write_byte(0x0c, 1);
+	LCD_write_byte(0x80, 1);
 
 	for (i=0; i<504; i++)
 	{
-		LCD_write_byte(0, 1);
+		LCD_write_byte(0, 0);
 	}
 }
 
 void LCD_set_XY(unsigned char X, unsigned char Y)
 {
-	LCD_write_byte(0x40 | Y, 0);	// column
-	LCD_write_byte(0x80 | X, 0);    // row
+	LCD_write_byte(0x40 | Y, 1);	// column
+	LCD_write_byte(0x80 | X, 1);    // row
 }
 
 void LCD_write_char(unsigned char c)
@@ -114,7 +114,7 @@ void LCD_write_char(unsigned char c)
 	c -= 32;
 
 	for (line=0; line<6; line++)
-	LCD_write_byte(font6x8[c][line], 1);
+	LCD_write_byte(font6x8[c][line], 0);
 }
 
 void LCD_write_english_string(unsigned char X,unsigned char Y,char *s)
