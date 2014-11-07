@@ -1,63 +1,24 @@
 /*
- * Text_display.c
+ * display.c
  *
- * Created: 10-Jul-14 13:56:31
+ * Created: 06-Nov-14 23:01:30
  *  Author: 4a4ik
- * 4 bit mode
  */ 
 
-#define F_CPU 8000000UL
+#include "functions.h"
 
-#define PROGRAM_PORT PORTB
+#define PROGRAM_PORT PORTC
 //PORT B
 #define PIN_RS 0
-#define PIN_RW 1
-#define PIN_E  2
+#define PIN_RW 6
+#define PIN_E  1
 
-#define HIGH_PORT PORTD
+#define HIGH_PORT PORTC
 //PORT D
-#define PIN_DB4  0
-#define PIN_DB5  1
-#define PIN_DB6  2
-#define PIN_DB7  3
-
-#include <avr/io.h>
-#include <util/delay.h>
-
-void send();
-void write_symbol( char a );
-void initialize( int _2_line );
-void set_mode( int display_shift, int right );
-void enable_display( int display_on, int cursor_on, int blinking_on );
-void return_cursor();
-void clear_display();
-void move_cursor( int x_pos, int line );
-
-int main(void)
-{
-	
-	initialize( 1 );
-	enable_display( 1, 1, 1 );
-	clear_display();
-	return_cursor();
-	set_mode( 0, 1 );
-	
-	write_symbol('T');
-	write_symbol('e');
-	write_symbol('r');
-	write_symbol('r');
-	write_symbol('a');
-	write_symbol('r');
-	write_symbol('i');
-	write_symbol('a');
-	
-
-	
-    while(1)
-	{
-	}
-}
-
+#define PIN_DB4  5
+#define PIN_DB5  4
+#define PIN_DB6  3
+#define PIN_DB7  2
 
 void send()
 {
@@ -68,8 +29,8 @@ void send()
 	PROGRAM_PORT &= ~( 1 << PIN_E );
 	
 	//clear command
-	PROGRAM_PORT = 0;
-	HIGH_PORT    = 0;
+	PROGRAM_PORT &= ~(( 1 << PIN_E )|( 1 << PIN_RW )|( 1 << PIN_RS ));
+	HIGH_PORT    &= ~(( 1 << PIN_DB7 )|( 1 << PIN_DB6 )|( 1 << PIN_DB5 )|( 1 << PIN_DB4 ));
 }
 
 void write_symbol( char a )
@@ -79,13 +40,13 @@ void write_symbol( char a )
 	
 	PROGRAM_PORT |= (1 << PIN_RS );
 	
-	HIGH_PORT = high_bit;
+	HIGH_PORT |= (((high_bit & 8 ) >> 3) << PIN_DB7 )|(((high_bit & 4 ) >> 2)  << PIN_DB6 )|(((high_bit & 2 ) >> 1)  << PIN_DB5 )|((high_bit & 1) << PIN_DB4 );
 	
 	send();
 	_delay_us(50);
 	
-	PROGRAM_PORT |= (1 << PIN_RS );	
-	HIGH_PORT  = small_bit;
+	PROGRAM_PORT |= (1 << PIN_RS );
+	HIGH_PORT |= ( ((small_bit & 8 ) >> 3) << PIN_DB7 )|(((small_bit & 4 ) >> 2)  << PIN_DB6 )|(((small_bit & 2 ) >> 1)  << PIN_DB5 )|((small_bit & 1) << PIN_DB4 );
 
 	send();
 	_delay_us(50);
@@ -93,10 +54,6 @@ void write_symbol( char a )
 
 void initialize( int _2_line )
 {
-	DDRB = 0xFF;
-	DDRC = 0xFF;
-	DDRD = 0xFF;
-
 	_delay_us(50);
 
 	HIGH_PORT |= ( 1 << PIN_DB5 );
@@ -165,15 +122,22 @@ void move_cursor( int x_pos, int line )
 	int small_bit = x_pos % 16;
 	int high_bit  = x_pos / 16;
 	
-	HIGH_PORT = high_bit;
-	HIGH_PORT |= (1 << PIN_DB7 )|((line - 1) << PIN_DB6 );
+	HIGH_PORT |= (1 << PIN_DB7 )|((line - 1) << PIN_DB6 )|( high_bit & 2  << PIN_DB5 )|(( high_bit & 1) << PIN_DB4 );
 	
 	send();
 	_delay_us(50);
 	
-	HIGH_PORT  = small_bit;
+	HIGH_PORT |= ( ((small_bit & 8 ) >> 3) << PIN_DB7 )|(((small_bit & 4 ) >> 2)  << PIN_DB6 )|(((small_bit & 2 ) >> 1)  << PIN_DB5 )|(( small_bit & 1) << PIN_DB4 );
 
 	send();
 	_delay_us(50);
 }
 
+void lcd_init()
+{
+	initialize( 1 );
+	enable_display( 1, 1, 1 );
+	clear_display();
+	return_cursor();
+	set_mode( 0, 1 );
+}
