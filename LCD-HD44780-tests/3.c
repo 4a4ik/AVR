@@ -5,7 +5,10 @@
  *  Author: 4a4ik
  */ 
 
-#include "functions.h"
+#define F_CPU 8000000UL
+
+#include <avr/io.h>
+#include <util/delay.h>
 
 #define PROGRAM_PORT PORTC
 //PORT B
@@ -19,6 +22,36 @@
 #define PIN_DB5  4
 #define PIN_DB6  3
 #define PIN_DB7  2
+
+void send();
+void write_symbol( char a );
+void initialize( int _2_line );
+void set_mode( int display_shift, int right );
+void enable_display( int display_on, int cursor_on, int blinking_on );
+void return_cursor();
+void clear_display();
+void move_cursor( int x_pos, int line );
+void lcd_init();
+
+int main(void)
+{
+	DDRC = 0b00111111;
+	
+	lcd_init();
+	
+	write_symbol('4');
+	write_symbol('a');
+	write_symbol('4');
+	write_symbol('i');
+	write_symbol('k');
+	
+	move_cursor( 10, 2 );
+	
+    while(1)
+    {
+		 
+    }
+}
 
 void send()
 {
