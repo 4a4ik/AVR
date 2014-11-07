@@ -25,6 +25,7 @@
 
 void send();
 void write_symbol( char a );
+void write_number( int a );
 void initialize( int _2_line );
 void set_mode( int display_shift, int right );
 void enable_display( int display_on, int cursor_on, int blinking_on );
@@ -80,6 +81,23 @@ void write_symbol( char a )
 	
 	PROGRAM_PORT |= (1 << PIN_RS );
 	HIGH_PORT |= ( ((small_bit & 8 ) >> 3) << PIN_DB7 )|(((small_bit & 4 ) >> 2)  << PIN_DB6 )|(((small_bit & 2 ) >> 1)  << PIN_DB5 )|((small_bit & 1) << PIN_DB4 );
+
+	send();
+	_delay_us(50);
+}
+
+void write_number( int a )
+{
+	
+	PROGRAM_PORT |= (1 << PIN_RS );
+	
+	HIGH_PORT |= (1 << PIN_DB5 )|(1<< PIN_DB4 );
+	
+	send();
+	_delay_us(50);
+	
+	PROGRAM_PORT |= (1 << PIN_RS );
+	HIGH_PORT |= ( (( a & 8 ) >> 3) << PIN_DB7 )|((( a & 4 ) >> 2)  << PIN_DB6 )|((( a & 2 ) >> 1)  << PIN_DB5 )|(( a & 1) << PIN_DB4 );
 
 	send();
 	_delay_us(50);
