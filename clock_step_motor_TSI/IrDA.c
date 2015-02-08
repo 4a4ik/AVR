@@ -17,7 +17,6 @@
 #define wait_c 2
 
 
-
 unsigned char mode = normal;
 
 unsigned char bit = 0, pressed_number, number = 10;
@@ -30,8 +29,8 @@ void IrDA_init()
 	TCCR0 |= (1<<CS02)|(0<<CS01)|(1<<CS00);  // Timer 0 prescaler 1024
 	TIMSK &= ~(1<<TOIE0); // OVERFLOW interrupt disable
 	
-	MCUCR |= (1<<ISC00)|(1<<ISC01); // rising edge INT0
-	GICR  |= (1<<INT0); // enable interrupt INT0
+	MCUCR |= (1<<ISC00)|(1<<ISC01)|(1<<ISC11)|(0<<ISC10); // rising edge INT0 and falling edge INT1
+	GICR  |= (1<<INT0)|(1<<INT1); // enable interrupt INT0 and INT1
 
 	irDA_read_eeprom();
 }
@@ -46,6 +45,27 @@ void irDA_update_eeprom()
 {
 	for(int n = 0; n < max_numbers; n++)
 		eeprom_update_block (( const void *) signal[ n ] , ( void *)(n * 40) , 40) ;
+}
+
+ISR(INT1_vect)
+{
+	mode = record_command;
+	bit = 0;
+	number = 0;
+	
+	memset(signal, 0, sizeof signal);	// clear the array
+	
+	move_cursor(0, 1);
+	write_text("program number:");
+		
+	move_cursor(0, 2);
+	write_number(0);
+	
+	GIFR |= (1<<INTF0); // clear INT0 interrupt
+	TIFR  |= (1<<TOV0);  // clear OVERFLOW interrupt
+	
+	TIMSK &= ~(1<<TOIE0); // OVERFLOW interrupt disable
+	GICR  |= (1<<INT0); // enable interrupt INT0
 }
 	
 ISR(INT0_vect)
@@ -130,6 +150,8 @@ ISR(TIMER0_OVF_vect)
 				}
 				if(i == number - 1)
 				{
+					motor_step( 1, 3 ); // rotate clockwise
+					motor_step( 0, 3 );
 					number++;
 					move_cursor(0, 2);
 					write_number(number);
