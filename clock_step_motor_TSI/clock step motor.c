@@ -12,18 +12,18 @@
 
 int main(void)
 {
-	DDRD  = 0b00000011;
-	PORTD = 0b00000000;
+	DDRD  = 0b00000000;
+	PORTD = 0b00001000;	// INT1 interrupt high level
 	
-	DDRB = 0b00000011;
-	DDRC = 0b00111111;
+	DDRB = 0b00000011;	// output for motor control
+	DDRC = 0b00111111;	// output for display control
 	
 	IrDA_init();
 	lcd_init();
 	
 	sei();
 	
-	write_text("Enter number");
+	write_text("Pressed number:");
 	
 	move_cursor(0, 2);
 	
