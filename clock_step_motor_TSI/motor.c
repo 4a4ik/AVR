@@ -13,7 +13,7 @@
 
 void motor_step(char clockwise, unsigned char number )
 {
-	MOTOR_PORT |= ( 1 << PIN_DIR );		// choose direction of rotation
+	MOTOR_PORT |= ( (1 & clockwise) << PIN_DIR );		// choose direction of rotation
 	
 	for(unsigned n = 0; n < number * 200; n++)	// steps
 	{
