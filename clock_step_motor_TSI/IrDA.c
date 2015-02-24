@@ -8,6 +8,10 @@
 /*
  *	connect (INT0) PD2	
  *	to the receiver
+ *
+ *	Timer0 IrDa
+ *	Timer1 16 bit PWM
+ *	Timer2 wait if button is pressed, when overflow stop rotating the motor
  */
 
 #include "functions.h"
@@ -23,6 +27,8 @@ unsigned char bit = 0, pressed_number, number = 10;
 
 unsigned char signal[max_numbers][max_signal_length] = {{ 0 }};
 unsigned char check_signal[max_signal_length] = { 0 };
+	
+unsigned char time = 0;
 
 void IrDA_init()
 {
@@ -31,6 +37,16 @@ void IrDA_init()
 	
 	MCUCR |= (1<<ISC00)|(1<<ISC01)|(1<<ISC11)|(0<<ISC10); // rising edge INT0 and falling edge INT1
 	GICR  |= (1<<INT0)|(1<<INT1); // enable interrupt INT0 and INT1
+	
+	// timer 1  check for keeping pressed number
+	TCCR1B	|= (1<<WGM12);	//  Timer OFF,   CTC compare on OCR1A   
+	OCR1A	= 13750; //110 ms
+	TIMSK	|= (1<<OCIE1A);	// compare OC1A interrupt enable
+	
+	// Timer 2 PWM
+	TCCR2	|= (1<<WGM21)|(0<<COM20)|(1<<CS21)|(1<<CS20);	// CTC, DON'T toggle IC2, clk / 32
+	OCR2	= 124; // 500 us
+	
 
 	irDA_read_eeprom();
 }
@@ -46,6 +62,12 @@ void irDA_update_eeprom()
 	for(int n = 0; n < max_numbers; n++)
 		eeprom_update_block (( const void *) signal[ n ] , ( void *)(n * 40) , 40) ;
 }
+
+ISR(TIMER1_COMPA_vect)
+{
+	motor_rotate(stop);
+}
+
 
 ISR(INT1_vect)
 {
@@ -70,6 +92,8 @@ ISR(INT1_vect)
 	
 ISR(INT0_vect)
 {
+	TCNT1 = 0;	// Clear rotation button pressed timer
+	
 	if(bit == 0)
 	{
 		TCNT0 = 0;
@@ -92,6 +116,8 @@ ISR(INT0_vect)
 		TCNT0 = 0;
 		bit++;
 	}
+	
+	TCNT1 = 0;	// Clear rotation button pressed timer
 }
 
 ISR(TIMER0_OVF_vect)
@@ -159,7 +185,13 @@ ISR(TIMER0_OVF_vect)
 					write_symbol(' ');
 					
 					if(number == max_numbers )
+					{
 						irDA_update_eeprom();
+						clear_display();
+						write_text("Entered num:");
+						
+						mode = normal;
+					}
 
 					break;
 				}
@@ -179,7 +211,30 @@ ISR(TIMER0_OVF_vect)
 					pressed_number = i;
 					move_cursor(0, 2);
 					write_number(pressed_number);
-					motor_step(1, pressed_number);
+					
+					if(pressed_number < 10)
+					{
+						//motor_step(1, pressed_number);
+						if(time == 0)
+						{
+							time += pressed_number;
+						}
+						else if(time > 10 & time < 1000 )
+						{
+							time *= 10;
+							time += pressed_number;
+						}
+						else
+							motor_set_time(time);
+							
+					}
+						
+					else if(pressed_number == 10)
+						motor_rotate(counterclockwise);
+					
+					else if(pressed_number == 11)
+						motor_rotate(clockwise);
+					
 					break;
 				}
 			}
