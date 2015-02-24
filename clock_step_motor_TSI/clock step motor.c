@@ -15,7 +15,7 @@ int main(void)
 	DDRD  = 0b00000000;
 	PORTD = 0b00001000;	// INT1 interrupt high level
 	
-	DDRB = 0b00000011;	// output for motor control
+	DDRB = 0b00001011;	// output for motor control
 	DDRC = 0b00111111;	// output for display control
 	
 	IrDA_init();
