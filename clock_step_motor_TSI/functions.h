@@ -38,13 +38,17 @@ void move_cursor( int x_pos, int line );
 void lcd_init();
 
 //MOTOR
-void motor_step(char clockwise, unsigned char number );
+void motor_step(char direction, unsigned char number );
+void motor_rotate(unsigned char direction);
+void motor_set_time(unsigned char new_time);
+
+#define stop 0
+#define clockwise 1
+#define counterclockwise 2
 
 
 #define max_signal_length 40
-#define max_numbers 10
-
-#define number_already_recorded 1
+#define max_numbers 12
 
 extern unsigned char signal[max_numbers][max_signal_length];
 
