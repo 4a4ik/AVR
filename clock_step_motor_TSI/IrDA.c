@@ -28,7 +28,11 @@ unsigned char bit = 0, pressed_number, number = 10;
 unsigned char signal[max_numbers][max_signal_length] = {{ 0 }};
 unsigned char check_signal[max_signal_length] = { 0 };
 	
-unsigned char time = 0;
+unsigned int time = 0;	// dummy for getting time from TV remote
+unsigned int current_time = 0;	// current time set on the clock
+unsigned int win_time = 0;	// time player needs to guess
+
+unsigned char numbers_pressed = 0;
 
 void IrDA_init()
 {
@@ -209,23 +213,36 @@ ISR(TIMER0_OVF_vect)
 				else if (n >= max_signal_length - 1 || check_signal[ n + 1 ] == 0)
 				{
 					pressed_number = i;
-					move_cursor(0, 2);
-					write_number(pressed_number);
+					//move_cursor(0, 2);
+					//write_number(pressed_number);
 					
 					if(pressed_number < 10)
 					{
 						//motor_step(1, pressed_number);
-						if(time == 0)
+						
+						if(numbers_pressed == 0)
 						{
 							time += pressed_number;
+							numbers_pressed++;
 						}
-						else if(time > 10 & time < 1000 )
+						else if(numbers_pressed < 3)
 						{
 							time *= 10;
 							time += pressed_number;
+							numbers_pressed++;
 						}
-						else
+						else if(numbers_pressed == 3)
+						{
+							time *= 10;
+							time += pressed_number;
+							
+							move_cursor(0, 2);
+							write_number(time);
 							motor_set_time(time);
+							time = 0;
+							numbers_pressed = 0;
+						}
+						
 							
 					}
 						
