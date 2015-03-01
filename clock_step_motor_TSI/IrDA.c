@@ -49,7 +49,7 @@ void IrDA_init()
 	
 	// Timer 2 PWM
 	TCCR2	|= (1<<WGM21)|(0<<COM20)|(1<<CS21)|(1<<CS20);	// CTC, DON'T toggle IC2, clk / 32
-	OCR2	= 124; // 500 us
+	OCR2	= 200; // 124 500 us
 	
 
 	irDA_read_eeprom();
@@ -58,13 +58,13 @@ void IrDA_init()
 void irDA_read_eeprom()
 {
 	for(int n = 0; n < max_numbers; n++)
-		eeprom_read_block (( void *) signal[ n ] , ( const void *)(n * 40) , 40) ;
+		eeprom_read_block (( void *) signal[ n ] , ( const void *)(n * max_signal_length) , max_signal_length) ;
 }
 
 void irDA_update_eeprom()
 {
 	for(int n = 0; n < max_numbers; n++)
-		eeprom_update_block (( const void *) signal[ n ] , ( void *)(n * 40) , 40) ;
+		eeprom_update_block (( const void *) signal[ n ] , ( void *)(n * max_signal_length) , max_signal_length) ;
 }
 
 ISR(TIMER1_COMPA_vect)
@@ -75,17 +75,20 @@ ISR(TIMER1_COMPA_vect)
 
 ISR(INT1_vect)
 {
+	motor_step( 1, 200 ); // rotate clockwise
+	motor_step( 0, 200 );
+	
 	mode = record_command;
 	bit = 0;
 	number = 0;
 	
 	memset(signal, 0, sizeof signal);	// clear the array
 	
-	move_cursor(0, 1);
-	write_text("program number:");
+//	move_cursor(0, 1);
+//	write_text("program number:");
 		
-	move_cursor(0, 2);
-	write_number(0);
+//	move_cursor(0, 2);
+//	write_number(0);
 	
 	GIFR |= (1<<INTF0); // clear INT0 interrupt
 	TIFR  |= (1<<TOV0);  // clear OVERFLOW interrupt
@@ -136,8 +139,8 @@ ISR(TIMER0_OVF_vect)
 		
 		else
 		{
-			clear_display();
-			write_text("Entered num:");
+//			clear_display();
+//			write_text("Entered num:");
 			
 			mode = normal;
 		}
@@ -150,11 +153,14 @@ ISR(TIMER0_OVF_vect)
 		}
 		else if(number == 0)
 		{
+			motor_step( 1, 200 ); // rotate clockwise
+			motor_step( 0, 200 );
+			
 			number++;
-			move_cursor(0, 2);
-			write_number(number);
-			move_cursor(4, 2);
-			write_symbol(' ');
+//			move_cursor(0, 2);
+//			write_number(number);
+//			move_cursor(4, 2);
+//			write_symbol(' ');
 		}
 			
 
@@ -172,27 +178,27 @@ ISR(TIMER0_OVF_vect)
 
 					else if (n >= max_signal_length - 1 || signal[ number ][ n + 1 ] == 0)
 					{
-						move_cursor(4, 2);
-						write_symbol('x');
+//						move_cursor(4, 2);
+//						write_symbol('x');
 						i = number;
 						break;
 					}
 				}
 				if(i == number - 1)
 				{
-					motor_step( 1, 3 ); // rotate clockwise
-					motor_step( 0, 3 );
+					motor_step( 1, 200 ); // rotate clockwise
+					motor_step( 0, 200 );
 					number++;
-					move_cursor(0, 2);
-					write_number(number);
-					move_cursor(4, 2);
-					write_symbol(' ');
+//					move_cursor(0, 2);
+//					write_number(number);
+//					move_cursor(4, 2);
+//					write_symbol(' ');
 					
 					if(number == max_numbers )
 					{
 						irDA_update_eeprom();
-						clear_display();
-						write_text("Entered num:");
+//						clear_display();
+//						write_text("Entered num:");
 						
 						mode = normal;
 					}
@@ -236,8 +242,8 @@ ISR(TIMER0_OVF_vect)
 							time *= 10;
 							time += pressed_number;
 							
-							move_cursor(0, 2);
-							write_number(time);
+//							move_cursor(0, 2);
+//							write_number(time);
 							motor_set_time(time);
 							time = 0;
 							numbers_pressed = 0;
@@ -247,10 +253,14 @@ ISR(TIMER0_OVF_vect)
 					}
 						
 					else if(pressed_number == 10)
-						motor_rotate(counterclockwise);
+						motor_rotate(clockwise);
 					
 					else if(pressed_number == 11)
-						motor_rotate(clockwise);
+						motor_rotate(counterclockwise);
+					
+					else if(pressed_number == 12)
+						motor_step(0, 1);
+					
 					
 					break;
 				}
