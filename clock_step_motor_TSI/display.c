@@ -4,7 +4,7 @@
  * Created: 06-Nov-14 23:01:30
  *  Author: 4a4ik
  */ 
-
+/*
 #include "functions.h"
 
 #define PROGRAM_PORT PORTC
@@ -155,4 +155,4 @@ void lcd_init()
 	clear_display();
 	return_cursor();
 	set_mode( 0, 1 );
-}
+}*/
