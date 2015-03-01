@@ -47,8 +47,8 @@ void motor_set_time(unsigned int new_time);
 #define clockwise 2
 
 
-#define max_signal_length 40
-#define max_numbers 12
+#define max_signal_length 35
+#define max_numbers 13
 
 extern unsigned char signal[max_numbers][max_signal_length];
 
