@@ -52,7 +52,7 @@ void motor_set_time(unsigned int new_time);
 
 extern unsigned char signal[max_numbers][max_signal_length];
 
-extern unsigned int current_time;
+extern unsigned int current_time, win_time;
 
 
 #endif /* FUNCTIONS_H_ */
