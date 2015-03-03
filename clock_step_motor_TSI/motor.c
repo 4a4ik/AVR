@@ -94,7 +94,7 @@ void motor_rotate(unsigned char direction)
 	{
 		TCCR1B	|= (1<<CS11)|(1<<CS10);	//  No prescaling,  enable timer
 		TCCR2	|= (1<<COM20); // OC2 PWM
-		TIFR	|= (1<<OCF1A);	//clear interrupt flag
+		TIFR	= (1<<OCF1A);	//clear interrupt flag
 		
 		if(1 & direction)	// choose direction of rotation
 			MOTOR_PORT |= (1 << PIN_DIR );
@@ -228,4 +228,7 @@ void motor_set_time(unsigned int new_time)
 	motor_step(dir, steps );
 	
 	current_time = new_time;
+	
+	if(current_time == win_time)
+		PORTC |= (1<<5);
 }
