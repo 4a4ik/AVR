@@ -19,18 +19,15 @@ int main(void)
 	DDRC = 0b00111111;	// output for display control
 	
 	IrDA_init();
-//	lcd_init();
+	lcd_init();
 	
 	sei();
 	
-//	write_text("Pressed number:");
+	write_text("Pressed number:");
 	
-//	move_cursor(0, 2);
+	move_cursor(0, 2);
 	
-//	write_number(0);
-	
-//	clear_display();
-//	write_text("Entered num:");
+	write_number(0);
 	
     while(1)
     {
