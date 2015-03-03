@@ -37,7 +37,7 @@ unsigned char numbers_pressed = 0;
 void IrDA_init()
 {
 	TCCR0 |= (1<<CS02)|(0<<CS01)|(1<<CS00);  // Timer 0 prescaler 1024
-	TIMSK &= ~(1<<TOIE0); // OVERFLOW interrupt disable
+//	TIMSK &= ~(1<<TOIE0); // OVERFLOW interrupt disable
 	
 	MCUCR |= (1<<ISC00)|(1<<ISC01)|(1<<ISC11)|(0<<ISC10); // rising edge INT0 and falling edge INT1
 	GICR  |= (1<<INT0)|(1<<INT1); // enable interrupt INT0 and INT1
@@ -73,53 +73,72 @@ ISR(TIMER1_COMPA_vect)
 }
 
 
-ISR(INT1_vect)
+ISR(INT1_vect)	// button was pressed
 {
 	motor_step( 1, 200 ); // rotate clockwise
 	motor_step( 0, 200 );
 	
-	mode = record_command;
-	bit = 0;
-	number = 0;
+	_delay_ms(1000);
 	
-	memset(signal, 0, sizeof signal);	// clear the array
-	
-//	move_cursor(0, 1);
-//	write_text("program number:");
+	if(PIND & (1<<3)) // button is not pressed anymore
+	{
+		win_time = current_time;
+		move_cursor(0, 1);
+		write_text("new time:");
+		PORTC &= ~(1<<5);
+		while(((PIND) & (1<<3)) == 0)	// wait for button to be released
+		{ ;	};
+	}
+	else	// button is still pressed
+	{
+		motor_step( 1, 800 ); // rotate clockwise
+		motor_step( 0, 800 );
 		
-//	move_cursor(0, 2);
-//	write_number(0);
+		mode = record_command;
+		bit = 0;
+		number = 0;
+		
+		memset(signal, 0, sizeof signal);	// clear the array
+		
+		move_cursor(0, 1);
+		write_text("program number:");
+		
+		move_cursor(0, 2);
+		write_number(0);
+	}
 	
-	GIFR |= (1<<INTF0); // clear INT0 interrupt
-	TIFR  |= (1<<TOV0);  // clear OVERFLOW interrupt
+			
+	
+	GIFR  = (1<<INTF0); // clear INT0 interrupt
+	TIFR  = (1<<TOV0);  // clear OVERFLOW interrupt
 	
 	TIMSK &= ~(1<<TOIE0); // OVERFLOW interrupt disable
 	GICR  |= (1<<INT0); // enable interrupt INT0
 }
 	
-ISR(INT0_vect)
-{
+ISR(INT0_vect)	// IrDA receiver
+{	
 	TCNT1 = 0;	// Clear rotation button pressed timer
 	
 	if(bit == 0)
 	{
 		TCNT0 = 0;
-		TIFR  |= (1<<TOV0);  // clear OVERFLOW interrupt
+		TIFR  = (1<<TOV0);  // clear OVERFLOW interrupt
 		TIMSK |= (1<<TOIE0); // enable OVERFLOW interrupt
 	}
 	
-	if(bit >= max_signal_length && mode == record_command)
+	if(mode == normal)
+	{
+		check_signal[ bit ] = TCNT0;
+		TCNT0 = 0;
+		bit++;
+	}
+	else if(bit >= max_signal_length && mode == record_command)
 		GICR  &= ~(1<<INT0); // disable interrupt INT0
 		
 	else if(mode == record_command)
 	{
 		signal[ number ][ bit ] = TCNT0;
-		TCNT0 = 0;
-		bit++;
-	}
-	else if(mode == normal)
-	{
-		check_signal[ bit ] = TCNT0;
 		TCNT0 = 0;
 		bit++;
 	}
@@ -139,7 +158,7 @@ ISR(TIMER0_OVF_vect)
 		
 		else
 		{
-//			clear_display();
+	//		clear_display();
 //			write_text("Entered num:");
 			
 			mode = normal;
@@ -218,9 +237,10 @@ ISR(TIMER0_OVF_vect)
 					
 				else if (n >= max_signal_length - 1 || check_signal[ n + 1 ] == 0)
 				{
+					
 					pressed_number = i;
-					//move_cursor(0, 2);
-					//write_number(pressed_number);
+					move_cursor(0, 2);
+					write_number(pressed_number);
 					
 					if(pressed_number < 10)
 					{
@@ -242,8 +262,8 @@ ISR(TIMER0_OVF_vect)
 							time *= 10;
 							time += pressed_number;
 							
-//							move_cursor(0, 2);
-//							write_number(time);
+						//	move_cursor(0, 2);
+						//	write_number(time);
 							motor_set_time(time);
 							time = 0;
 							numbers_pressed = 0;
@@ -267,6 +287,6 @@ ISR(TIMER0_OVF_vect)
 			}
 
 	bit = 0;
-	GIFR |= (1<<INTF0); // clear INT0 interrupt
+	GIFR  = (1<<INTF0); // clear INT0 interrupt
 	GICR |= (1<<INT0);  // enable interrupt INT0
 }
