@@ -21,7 +21,7 @@
 void IrDA_init();
 void irDA_read_eeprom();
 void irDA_update_eeprom();
-
+void IrDA_write_win_time();
 
 //--------------display--------------//
 
@@ -46,6 +46,10 @@ void motor_set_time(unsigned int new_time);
 #define counterclockwise 1
 #define clockwise 2
 
+#define MOTOR_PORT PORTB
+#define PIN_DIR 0
+#define PIN_STEP 3
+
 
 #define max_signal_length 35
 #define max_numbers 13
@@ -53,6 +57,13 @@ void motor_set_time(unsigned int new_time);
 extern unsigned char signal[max_numbers][max_signal_length];
 
 extern unsigned int current_time, win_time;
+
+//IRDA and motor
+extern unsigned int time;	// dummy for getting time from TV remote
+extern unsigned int current_time;	// current time set on the clock
+extern unsigned int win_time;
+extern unsigned int win_minutes;	// time player needs to guess
+extern unsigned int current_minutes;
 
 
 #endif /* FUNCTIONS_H_ */
