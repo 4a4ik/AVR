@@ -30,9 +30,15 @@ unsigned char check_signal[max_signal_length] = { 0 };
 	
 unsigned int time = 0;	// dummy for getting time from TV remote
 unsigned int current_time = 0;	// current time set on the clock
-unsigned int win_time = 0;	// time player needs to guess
+unsigned int win_time = 9999;
+unsigned int win_minutes = 9999;	// time player needs to guess
+unsigned int current_minutes = 0;
 
 unsigned char numbers_pressed = 0;
+
+unsigned char pwm_move = 0;
+unsigned int  pwm_time = 0;
+
 
 void IrDA_init()
 {
@@ -45,12 +51,11 @@ void IrDA_init()
 	// timer 1  check for keeping pressed number
 	TCCR1B	|= (1<<WGM12);	//  Timer OFF,   CTC compare on OCR1A   
 	OCR1A	= 13750; //110 ms
-	TIMSK	|= (1<<OCIE1A);	// compare OC1A interrupt enable
-	
+	TIMSK	|= (1<<OCIE1A)|(1<<OCIE2);	// compare OC1A interrupt enable and OCR2
+		
 	// Timer 2 PWM
-	TCCR2	|= (1<<WGM21)|(0<<COM20)|(1<<CS21)|(1<<CS20);	// CTC, DON'T toggle IC2, clk / 32
-	OCR2	= 200; // 124 500 us
-	
+	OCR2	= 160; // 124 500 us
+	TCCR2	|= (1<<WGM21);	// CTC
 
 	irDA_read_eeprom();
 }
@@ -58,7 +63,9 @@ void IrDA_init()
 void irDA_read_eeprom()
 {
 	for(int n = 0; n < max_numbers; n++)
-		eeprom_read_block (( void *) signal[ n ] , ( const void *)(n * max_signal_length) , max_signal_length) ;
+		eeprom_read_block (( void *) signal[ n ] , ( const void *)(n * max_signal_length) , max_signal_length);
+		
+	win_time = (unsigned int)eeprom_read_word (( uint16_t *) 510);
 }
 
 void irDA_update_eeprom()
@@ -67,32 +74,95 @@ void irDA_update_eeprom()
 		eeprom_update_block (( const void *) signal[ n ] , ( void *)(n * max_signal_length) , max_signal_length) ;
 }
 
+void IrDA_write_win_time()
+{
+	eeprom_update_word (( uint16_t *) 510 , (uint16_t) win_time ) ;
+}
+
 ISR(TIMER1_COMPA_vect)
 {
 	motor_rotate(stop);
+	if(pwm_move > 0)
+	{
+		motor_step(3, 160 - pwm_move);
+		pwm_time += 3;
+	}
+	
+	current_minutes = ((current_time / 100) * 60) + (current_time % 100);
+		
+	//if(pwm_time / 60 != 0)	// set clock format 1200 max
+		//pwm_time = 100 * pwm_time / 60 + pwm_time % 60;
+		
+	if(PINB & (1<<0)) // if rotation is counter counterclockwise
+	{
+		if(pwm_time > current_minutes)
+			current_minutes += 12 * 60;
+			
+		current_minutes -= pwm_time;
+			
+	}
+	else
+	{
+		current_minutes += pwm_time;
+		
+		if(current_minutes >= 12 * 60)
+			current_minutes -= 12 * 60;
+	}
+		
+	current_time = current_minutes / 60 * 100 + current_minutes % 60; 
+	
+	win_minutes = ((win_time / 100) * 60) + (win_time % 100);
+	
+	if(((current_minutes + 20 >= win_minutes + 20 - 6) && (current_minutes + 20 <= win_minutes + 20 + 6)) || ((current_minutes >= win_minutes + 720 - 6) && (current_minutes <= win_minutes + 720 + 6)) || ((current_minutes + 720 >= win_minutes - 6) && (current_minutes + 720 <= win_minutes + 6))  )
+	{
+		PORTC |= (1<<5);	// open door
+	}
+	else
+	{
+		PORTC &= ~(1<<5);
+	}
+
+	pwm_move = 0;
+	pwm_time = 0;
+	current_minutes = 0;
+}
+
+ISR(TIMER2_COMP_vect)
+{
+	MOTOR_PORT ^= ( 1 << PIN_STEP );
+	pwm_move += 1;
+		
+	if(pwm_move >= 160)
+	{
+		pwm_time += 3;
+		pwm_move = 0;	
+	}
+	if(pwm_time >= 720) // full circle 12 hours
+		pwm_time = 0;
 }
 
 
 ISR(INT1_vect)	// button was pressed
 {
-	motor_step( 1, 200 ); // rotate clockwise
-	motor_step( 0, 200 );
+	motor_step( counterclockwise, 200 ); // rotate clockwise
+	_delay_ms(100);
+	motor_step( clockwise, 200 );
 	
 	_delay_ms(1000);
 	
 	if(PIND & (1<<3)) // button is not pressed anymore
 	{
+		//PORTC ^= (1<<5);
 		win_time = current_time;
-		move_cursor(0, 1);
-		write_text("new time:");
-		PORTC &= ~(1<<5);
-		while(((PIND) & (1<<3)) == 0)	// wait for button to be released
-		{ ;	};
+		//move_cursor(0, 1);
+		//write_text("new time:");
+		IrDA_write_win_time();
 	}
 	else	// button is still pressed
 	{
-		motor_step( 1, 800 ); // rotate clockwise
-		motor_step( 0, 800 );
+		motor_step( counterclockwise, 800 ); // rotate clockwise
+		_delay_ms(100);
+		motor_step( clockwise, 800 );
 		
 		mode = record_command;
 		bit = 0;
@@ -100,11 +170,11 @@ ISR(INT1_vect)	// button was pressed
 		
 		memset(signal, 0, sizeof signal);	// clear the array
 		
-		move_cursor(0, 1);
-		write_text("program number:");
+		//move_cursor(0, 1);
+		//write_text("program number:");
 		
-		move_cursor(0, 2);
-		write_number(0);
+		//move_cursor(0, 2);
+		//write_number(0);
 	}
 	
 			
@@ -118,8 +188,7 @@ ISR(INT1_vect)	// button was pressed
 	
 ISR(INT0_vect)	// IrDA receiver
 {	
-	TCNT1 = 0;	// Clear rotation button pressed timer
-	
+	TCNT1 = 0;
 	if(bit == 0)
 	{
 		TCNT0 = 0;
@@ -127,7 +196,7 @@ ISR(INT0_vect)	// IrDA receiver
 		TIMSK |= (1<<TOIE0); // enable OVERFLOW interrupt
 	}
 	
-	if(mode == normal)
+	if(mode == normal && bit < max_signal_length)
 	{
 		check_signal[ bit ] = TCNT0;
 		TCNT0 = 0;
@@ -141,6 +210,11 @@ ISR(INT0_vect)	// IrDA receiver
 		signal[ number ][ bit ] = TCNT0;
 		TCNT0 = 0;
 		bit++;
+	}
+	
+	if(bit >= max_signal_length - 1)
+	{
+		GICR  &= ~(1<<INT0); // disable interrupt INT0
 	}
 	
 	TCNT1 = 0;	// Clear rotation button pressed timer
@@ -172,8 +246,9 @@ ISR(TIMER0_OVF_vect)
 		}
 		else if(number == 0)
 		{
-			motor_step( 1, 200 ); // rotate clockwise
-			motor_step( 0, 200 );
+			motor_step( clockwise, 200 ); // rotate clockwise
+			_delay_ms(100);
+			motor_step( counterclockwise, 200 );
 			
 			number++;
 //			move_cursor(0, 2);
@@ -205,8 +280,9 @@ ISR(TIMER0_OVF_vect)
 				}
 				if(i == number - 1)
 				{
-					motor_step( 1, 200 ); // rotate clockwise
-					motor_step( 0, 200 );
+					motor_step( counterclockwise, 200 ); // rotate clockwise
+					_delay_ms(100);
+					motor_step( clockwise, 200 );
 					number++;
 //					move_cursor(0, 2);
 //					write_number(number);
@@ -239,8 +315,8 @@ ISR(TIMER0_OVF_vect)
 				{
 					
 					pressed_number = i;
-					move_cursor(0, 2);
-					write_number(pressed_number);
+					//move_cursor(0, 2);
+					//write_number(pressed_number);
 					
 					if(pressed_number < 10)
 					{
@@ -262,8 +338,8 @@ ISR(TIMER0_OVF_vect)
 							time *= 10;
 							time += pressed_number;
 							
-						//	move_cursor(0, 2);
-						//	write_number(time);
+							//move_cursor(0, 1);
+							//write_number(time);
 							motor_set_time(time);
 							time = 0;
 							numbers_pressed = 0;
@@ -273,13 +349,13 @@ ISR(TIMER0_OVF_vect)
 					}
 						
 					else if(pressed_number == 10)
-						motor_rotate(clockwise);
-					
-					else if(pressed_number == 11)
 						motor_rotate(counterclockwise);
 					
+					else if(pressed_number == 11)
+						motor_rotate(clockwise);
+					
 					else if(pressed_number == 12)
-						motor_step(0, 1);
+						motor_step(0, 5);
 					
 					
 					break;
