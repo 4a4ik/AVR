@@ -23,11 +23,11 @@ int main(void)
 	
 	sei();
 	
-	write_text("Pressed number:");
+//	write_text("Pressed number:");
 	
-	move_cursor(0, 2);
+//	move_cursor(0, 2);
 	
-	write_number(0);
+//	write_number(0);
 	
     while(1)
     {
