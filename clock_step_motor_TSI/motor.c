@@ -7,98 +7,71 @@
 
 #include "functions.h"
 
-#define MOTOR_PORT PORTB
-#define PIN_DIR 0
-#define PIN_STEP 3
+
 
 void motor_step(char direction, unsigned int number )
 {
-	if(1 & direction)	// choose direction of rotation
+	if(direction == counterclockwise)	// choose direction of rotation
 		MOTOR_PORT |= (1 << PIN_DIR );
-	else
+	else if(direction == clockwise)	
 		MOTOR_PORT &= ~(1 << PIN_DIR );
 		
-	unsigned int part = number / 52;	// for speeding up the clock
+	unsigned int speed_part = number / 3;
 	
 	for(unsigned n = 0; n < number; n++)	// steps
 	{
-		MOTOR_PORT |= ( 1 << PIN_STEP );
 		
-		if(number < 60)			_delay_us(400);	// 500 us
-		
-		else
-		{
-			if	   (n < part * 1 || n > number - part * 1)			_delay_us(1000);
-			else if(n < part * 2 || n > number - part * 2)			_delay_us(960);
-			else if(n < part * 3 || n > number - part * 3)			_delay_us(920);
-			else if(n < part * 4 || n > number - part * 4)			_delay_us(880);
-			else if(n < part * 5 || n > number - part * 5)			_delay_us(840);
-			else if(n < part * 6 || n > number - part * 6)			_delay_us(800);
-			else if(n < part * 7 || n > number - part * 7)			_delay_us(760);
-			else if(n < part * 8 || n > number - part * 8)			_delay_us(720);
-			else if(n < part * 9 || n > number - part * 9)			_delay_us(680);
-			else if(n < part * 10 || n > number - part * 10)		_delay_us(620);
-			else if(n < part * 11 || n > number - part * 11)		_delay_us(580);
-			else if(n < part * 12 || n > number - part * 12)		_delay_us(540);
-			else if(n < part * 13 || n > number - part * 13)		_delay_us(500);
-			else if(n < part * 14 || n > number - part * 14)		_delay_us(460);
-			else if(n < part * 15 || n > number - part * 15)		_delay_us(420);
-			else if(n < part * 16 || n > number - part * 16)		_delay_us(380);
-			else if(n < part * 17 || n > number - part * 17)		_delay_us(340);
-			else if(n < part * 18 || n > number - part * 18)		_delay_us(300);
-			else if(n < part * 19 || n > number - part * 19)		_delay_us(280);
-			else if(n < part * 20 || n > number - part * 20)		_delay_us(240);
-			else _delay_us(200);
-		}
-		
-		MOTOR_PORT &= ~( 1 << PIN_STEP );
-		
-		if(number < 60)			_delay_us(400);	// 500 us
+		if(number < 1600)
+			_delay_us(400);	// 500 us
 		
 		else
 		{
-			if	   (n < part * 1 || n > number - part * 1)			_delay_us(1000);
-			else if(n < part * 2 || n > number - part * 2)			_delay_us(960);
-			else if(n < part * 3 || n > number - part * 3)			_delay_us(920);
-			else if(n < part * 4 || n > number - part * 4)			_delay_us(880);
-			else if(n < part * 5 || n > number - part * 5)			_delay_us(840);
-			else if(n < part * 6 || n > number - part * 6)			_delay_us(800);
-			else if(n < part * 7 || n > number - part * 7)			_delay_us(760);
-			else if(n < part * 8 || n > number - part * 8)			_delay_us(720);
-			else if(n < part * 9 || n > number - part * 9)			_delay_us(680);
-			else if(n < part * 10 || n > number - part * 10)		_delay_us(620);
-			else if(n < part * 11 || n > number - part * 11)		_delay_us(580);
-			else if(n < part * 12 || n > number - part * 12)		_delay_us(540);
-			else if(n < part * 13 || n > number - part * 13)		_delay_us(500);
-			else if(n < part * 14 || n > number - part * 14)		_delay_us(460);
-			else if(n < part * 15 || n > number - part * 15)		_delay_us(420);
-			else if(n < part * 16 || n > number - part * 16)		_delay_us(380);
-			else if(n < part * 17 || n > number - part * 17)		_delay_us(340);
-			else if(n < part * 18 || n > number - part * 18)		_delay_us(300);
-			else if(n < part * 19 || n > number - part * 19)		_delay_us(280);
-			else if(n < part * 20 || n > number - part * 20)		_delay_us(240);
-			else _delay_us(200);
+			if(n < speed_part)
+			{
+				for(int k = 0; k < (speed_part - n) / 30; k++)
+				{
+					_delay_us(1);
+				}
+			}
+			else if(n > number - speed_part)
+			{
+				for(int k = 0; k < (n - speed_part * 2 ) / 30; k++)
+				{
+					_delay_us(1);
+				}
+			}
+			
+			_delay_us(250);
 		}
+		
+		MOTOR_PORT ^= ( 1 << PIN_STEP );
 	}
 }
+
+
 
 void motor_rotate(unsigned char direction)
 {
 	if(direction == 0)
 	{
-		TCCR2	&= ~(1<<COM20); // OC2 NORMAL operation mode
+		//TCCR2	&= ~(1<<COM20); // OC2 NORMAL operation mode
 		TCCR1B	&= ~((1<<CS10)|(1<<CS10));	// Disable timer
+		TCCR2	&= ~((1<<CS21)|(1<<CS20));	// clk / 32
 		TCNT1 = 0;
+		TCNT2 = 0;
+		TIMSK	&= ~((1<<OCIE1A)|(1<<OCIE2));
 	}
 	else
 	{
 		TCCR1B	|= (1<<CS11)|(1<<CS10);	//  No prescaling,  enable timer
-		TCCR2	|= (1<<COM20); // OC2 PWM
+		TCCR2	|= (1<<CS21)|(1<<CS20);	// clk / 32
+		//TCCR2	|= (1<<COM20); // OC2 PWM
 		TIFR	= (1<<OCF1A);	//clear interrupt flag
+		TIMSK	|= (1<<OCIE1A)|(1<<OCIE2);
 		
-		if(1 & direction)	// choose direction of rotation
+		if(direction == clockwise)	// choose direction of rotation
 			MOTOR_PORT |= (1 << PIN_DIR );
-		else
+		else if(direction == counterclockwise)
 			MOTOR_PORT &= ~(1 << PIN_DIR );
 	}
 }
@@ -117,38 +90,36 @@ void motor_set_time(unsigned int new_time)
 	
 	unsigned char dir = 0;
 	
-	if(minutes > 24 * 60 || (current_time % 100) >= 60 || (minutes == clock_minutes)) // minutes >= 60 the same time
+	if(minutes >= 12 * 60)	// 12 hours clock format
+		minutes -= 12 * 60;
+	
+	if(minutes >= 12 * 60 || (new_time % 100) >= 60 || (minutes == clock_minutes)) // minutes >= 60 the same time
 	{
-		motor_step( 1, 100 ); // display error
-		motor_step( 0, 100 );
+		motor_step( counterclockwise, 200 ); // display error
+		_delay_ms(100);
+		motor_step( clockwise, 200 );
 		return;	// if error exit function
 	}
 	
-	if(minutes > 12 * 60)	// 12 hours clock format
-		minutes -= 12 * 60;
 		
 	if(minutes > clock_minutes)	// calculate how much steps motor needs to make and in what direction
 	{
-		steps = ((minutes - clock_minutes) / 3) * 80; //80
-		reminder = (minutes - clock_minutes) % 3;
+		steps = ((minutes - clock_minutes) / 3) * 160; //80
 		dir = clockwise;
 	}
 	
 	else
 	{
-		steps = ((clock_minutes - minutes) / 3) * 80;
-		reminder = (clock_minutes - minutes) % 3;
+		steps = ((clock_minutes - minutes) / 3) * 160;
 		dir = counterclockwise;
 	}
 	
-	if(steps == 0)
-	{
-		if(dir == clockwise)
-			reminder = (minutes - clock_minutes + 3) % 3;
+	if(dir == clockwise)
+		reminder = (minutes - clock_minutes + 3) % 3;
 
-		else
-			reminder = (clock_minutes - minutes + 3) % 3;
-	}
+	else
+		reminder = (clock_minutes - minutes + 3) % 3;
+
 	
 	
 	if(reminder != 0)
@@ -159,22 +130,22 @@ void motor_set_time(unsigned int new_time)
 			{
 				if(dir == clockwise)
 				{
-					steps += 26;
+					steps += 52;
 					shift_error++;
 				}
 				else
 				{
-					steps += 26;
+					steps += 52;
 					shift_error--;
 				}
 			}
 			else
 			{
 				if(dir == clockwise)
-					steps += 28;
+					steps += 56;
 
 				else
-					steps += 28;
+					steps += 56;
 
 				shift_error = 0;
 			}
@@ -186,12 +157,12 @@ void motor_set_time(unsigned int new_time)
 			{
 				if(dir == clockwise)
 				{
-					steps += 26 * 2;
+					steps += 52 * 2;
 					shift_error += 2;
 				}
 				else
 				{
-					steps += 26 * 2;
+					steps += 52 * 2;
 					shift_error -= 2;
 				}
 			}
@@ -199,12 +170,12 @@ void motor_set_time(unsigned int new_time)
 			{
 				if(dir == clockwise)
 				{
-					steps += 26 + 28;
+					steps += 52 + 56;
 					shift_error = 0;
 				}
 				else
 				{
-					steps += 26 + 28;
+					steps += 52 + 56;
 					shift_error = 0;
 				}
 			}
@@ -212,12 +183,12 @@ void motor_set_time(unsigned int new_time)
 			{
 				if(dir == clockwise)
 				{
-					steps += 28 + 56;
+					steps += 52 + 56;
 					shift_error = 1;
 				}
 				else
 				{
-					steps += 28 + 26;
+					steps += 56 + 52;
 					shift_error = -1;
 				}
 			}
@@ -225,10 +196,18 @@ void motor_set_time(unsigned int new_time)
 	}
 	
 	
-	motor_step(dir, steps );
+	motor_step(dir, steps);
 	
-	current_time = new_time;
+	current_time =  minutes / 60 * 100 + minutes % 60; 
+	current_minutes = ((current_time / 100) * 60) + (current_time % 100);
+	win_minutes = ((win_time / 100) * 60) + (win_time % 100);
 	
-	if(current_time == win_time)
-		PORTC |= (1<<5);
+	if(((current_minutes + 20 >= win_minutes + 20 - 6) && (current_minutes + 20 <= win_minutes + 20 + 6)) || ((current_minutes >= win_minutes + 720 - 6) && (current_minutes <= win_minutes + 720 + 6)) || ((current_minutes + 720 >= win_minutes - 6) && (current_minutes + 720 <= win_minutes + 6))  )
+	{
+		PORTC |= (1<<5);	// open door
+	}
+	else
+	{
+		PORTC &= ~(1<<5);
+	}
 }
