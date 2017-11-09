@@ -225,13 +225,13 @@ void light(unsigned int led)
 	PORTC &= ~((1<<0)|(1<<1)|(1<<2)|(1<<3)|(1<<4)|(1<<5));
 	PORTD &= ~((1<<0)|(1<<1)|(1<<3)|(1<<4)|(1<<5)|(1<<6)|(1<<7));
 	
-	if(led & 1)		set_1;
+	if(led & 1)	set_1;
 		
-	if(led & 2)		set_2;
+	if(led & 2)	set_2;
 		
-	if(led & 4)		set_3;
+	if(led & 4)	set_3;
 		
-	if(led & 8)		set_4;
+	if(led & 8)	set_4;
 		
 	if(led & 16)	set_5;
 	
