@@ -3,6 +3,7 @@
  * by Brett Beauregard <br3ttb@gmail.com> brettbeauregard.com
  *
  * This Library is licensed under the MIT License
+ * Github Test
  **********************************************************************************************/
 
 #if ARDUINO >= 100
